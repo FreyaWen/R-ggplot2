@@ -1,0 +1,17 @@
+---
+title: "ggplot2 studying"
+output: html_document
+---
+library(tidyverse)
+library(ggplot2)
+
+#多数据系列柱形图
+df1 <- read.csv(file.choose(),header=T, sep=",")
+
+#angle <- factor(df1, levels=c("0°或360°", "60°", "120°", "180°", "240°", "300°"))
+#RT, condition <- runif(12)
+
+#data <- data.frame(angle, RT, condition)
+
+ggplot(data=df1, aes(angle, RT, fill=condition))+
+  geom_bar(stat="identity", color="black", position=position_dodge2(preserve = 'single'), width=0.7, size=0.25)
