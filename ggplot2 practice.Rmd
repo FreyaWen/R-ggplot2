@@ -5,13 +5,25 @@ output: html_document
 library(tidyverse)
 library(ggplot2)
 
+library(scales)
+
 #多数据系列柱形图
-df1 <- read.csv(file.choose(),header=T, sep=",")
+df1 <- read.csv(file.choose(),header = T, sep = ",")
 
-#angle <- factor(df1, levels=c("0°或360°", "60°", "120°", "180°", "240°", "300°"))
-#RT, condition <- runif(12)
+#df1$angle[1:6]
+reorder_size <- function(angle) {
+  factor(df1$angle, levels = c("0°或360°", "60°", "120°", "180°", "240°", "300°"))
+} #按照factor的顺序排列x轴
 
-#data <- data.frame(angle, RT, condition)
+p1 <- ggplot(data = df1, aes(reorder_size(angle), RT, fill = condition))+
+       geom_bar(stat = "identity", color = "black", position = position_dodge2(preserve = 'single'), width = 0.7, size = 0.25)+
+       scale_y_continuous(breaks = seq(0,1200,len=7)) +
+       geom_text(aes(label = RT), 
+            position = position_dodge2(width = 0.7, preserve = 'single'), 
+            vjust = -0.2, hjust = 0.5) +  #增加数据具体数值
+            xlab("旋转角度") + ylab("平均反应时") #增加标题
+            
+gridExtra::grid.arrange(p1, bottom="不同旋转角度字母的平均反应时")
 
-ggplot(data=df1, aes(angle, RT, fill=condition))+
-  geom_bar(stat="identity", color="black", position=position_dodge2(preserve = 'single'), width=0.7, size=0.25)
+#+ labs(caption = "不同旋转角度字母的平均反应时") 图题位置
+#ggsave("1.png", dpi=300, plot=p1) 保存图片
