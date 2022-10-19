@@ -2,28 +2,64 @@
 title: "ggplot2 studying"
 output: html_document
 ---
+
+library(showtext)
+
+#查看Windows系统下的字体
+windowsFonts()
+
+##定义好导入的字体
+Font <- c('STKaiti.TTF','simhei.TTF') ##华文楷体;黑体;
+for (i in Font) {
+  font_path = i
+  font_name = tools::file_path_sans_ext(basename(font_path))
+  font_add(font_name, font_path)
+}
+font_families() ### 查看当前字体
+showtext_auto(enable=TRUE) #自动调用showtext，否则无法在ggsave()中使用，因为ggsave会自动打开和关闭图形设备。
+
 library(tidyverse)
 library(ggplot2)
-
 library(scales)
 
-#多数据系列柱形图
 df1 <- read.csv(file.choose(),header = T, sep = ",")
 
-#df1$angle[1:6]
+#按照factor的顺序排列x轴
+#df1$angle[1:6] → 方便复制条件
 reorder_size <- function(angle) {
   factor(df1$angle, levels = c("0°或360°", "60°", "120°", "180°", "240°", "300°"))
-} #按照factor的顺序排列x轴
+}
 
-p1 <- ggplot(data = df1, aes(reorder_size(angle), RT, fill = condition))+
-       geom_bar(stat = "identity", color = "black", position = position_dodge2(preserve = 'single'), width = 0.7, size = 0.25)+
-       scale_y_continuous(breaks = seq(0,1200,len=7)) +
-       geom_text(aes(label = RT), 
-            position = position_dodge2(width = 0.7, preserve = 'single'), 
-            vjust = -0.2, hjust = 0.5) +  #增加数据具体数值
-            xlab("旋转角度") + ylab("平均反应时") #增加标题
+#定义字体
+Fon <- 'STKaiti'
+
+##分组柱状图
+p1 <- ggplot(data = df1, aes(reorder_size(angle), RT, fill = condition)) +
+      geom_bar(stat = "identity", position = position_dodge2(preserve = 'single'), width = 0.7, size = 0.25) +
+#修改y轴
+      scale_y_continuous(breaks = c(0, 200, 400, 600, 800, 1000, 1200), labels = c("0", "200", "400", "600", "800", "1000", "1200"), limits = c(0, 1200)) +
+#增加数据具体数值
+      geom_text(aes(label = RT), size = 8/.pt,
+            position = position_dodge2(width = 0.7, preserve = 'single'),  vjust = -1.2) +  
+#增加标题
+      xlab("旋转角度") + ylab("平均反应时(ms)") + 
+#增加error bar
+      geom_errorbar(aes(ymin = RT - 30, ymax = RT + 30),
+                    position = position_dodge(0.7),width=0.15) +
+#修改图例标题
+      labs(fill = "条件") +
+#修改图片背景 灰→白
+      theme_bw() +
+#修改图例背景、颜色、标题大小、大小
+      theme(legend.position = c(0.15, 0.8), legend.background = element_rect(fill = 'white', color = 'black'), legend.title = element_text(size = 15), legend.key.size = unit(15, "pt")) +
+#坐标轴标签字体
+      theme(axis.title = element_text(family = Fon, face='bold', size=13, lineheight = 1), axis.text = element_text(family = Fon, face="bold", size=13))
             
-gridExtra::grid.arrange(p1, bottom="不同旋转角度字母的平均反应时")
+#修改图题位置，并在图题下方增加一行空白
+gridExtra::grid.arrange(p1, bottom="图1 不同旋转角度字母的平均反应时
+                                                                    ") 
 
-#+ labs(caption = "不同旋转角度字母的平均反应时") 图题位置
+
 #ggsave("1.png", dpi=300, plot=p1) 保存图片
+
+
