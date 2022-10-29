@@ -31,10 +31,12 @@ library(tidyverse)
 library(ggplot2)
 library(scales)
 library(reshape)
+library(RColorBrewer)
 
-df1 <- read.csv(file.choose(),header = T, sep = ",")
-df2 <- read.csv(file.choose(),header = T, sep = ",")
-df4 <- read.csv(file.choose(),header = T, sep = ",")
+df1 <- read.csv(file.choose(),header = T, sep = ",") #df1
+df2 <- read.csv(file.choose(),header = T, sep = ",") #Q1
+#df3是R内直接建构的数据框
+df4 <- read.csv(file.choose(),header = T, sep = ",") #Q2 in spss
 
 #按照factor的顺序排列x轴
 #df1$angle[1:6] → 方便复制条件
@@ -45,58 +47,81 @@ reorder_size <- function(angle) {
 
 ```{r}
 ##分组柱状图
-p1 <- ggplot(data = df1, aes(reorder_size(angle), RT, fill = condition)) +
-      geom_bar(stat = "identity", position = position_dodge2(preserve = 'single'), width = 0.7, size = 0.25) +
+p1 <- ggplot(data = df1, aes(factor(angle, levels = c("0°或360°", "60°", "120°", "180°", "240°", "300°")), RT, fill = condition)) +
+      geom_bar(stat = "identity", position = position_dodge(0.7)) +
 #修改y轴
-      scale_y_continuous(breaks = c(0, 200, 400, 600, 800, 1000, 1200), labels = c("0", "200", "400", "600", "800", "1000", "1200"), limits = c(0, 1200)) +
+      scale_y_continuous(breaks = c(0, 200, 400, 600, 800, 1000, 1200), labels = c("0", "200", "400", "600", "800", "1000", "1200"), limits = c(0, 1200), expand = c(0, 0)) +
 #增加数据具体数值
-      geom_text(aes(label = RT), size = 8/.pt,
-            position = position_dodge2(width = 0.7, preserve = 'single'),  vjust = -1.2) +
+      geom_text(aes(label = RT), size = 10/.pt, position = position_dodge(0.7),  vjust = -3.3) +
 #增加标题
-      xlab("旋转角度") + ylab("平均反应时(ms)") + 
+      xlab(" ") + ylab("平均反应时(ms)") + 
 #增加error bar
-      geom_errorbar(aes(ymin = RT - 30, ymax = RT + 30),
-                    position = position_dodge(0.7),width=0.15) +
+      geom_errorbar(aes(ymin = RT - 30, ymax = RT + 30), position = position_dodge(0.7), width = 0.05) +
 #修改图例标题
       labs(fill = "条件") +
 #修改图片背景 灰→白
       theme_bw() +
 #修改图例背景、颜色、标题大小、大小
       theme(legend.position = c(0.15, 0.8), legend.background = element_rect(fill = 'white', color = 'black'), legend.title = element_text(size = 15), legend.key.size = unit(7, "pt")) +
+#去除网格线
+      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
 #坐标轴标签字体
-      theme(axis.title = element_text(family = Fon, face='bold', size=13, lineheight = 1), axis.text = element_text(family = Fon, face="bold", size=13))
+      theme(axis.title = element_text(face='bold', size=13, lineheight = 1), axis.text = element_text(face="bold", size=13))
+
+p1
             
 #修改图题位置，并在图题下方增加一行空白
-gridExtra::grid.arrange(p1, bottom="图1 不同旋转角度字母的平均反应时
-                                                                    ")
+#gridExtra::grid.arrange(p1, bottom="图1 不同旋转角度字母的平均反应时
+#                                                                    ")
 
 #保存图片
-ggsave("p1.png", dpi = 300, plot = p1)
-
+ggsave(
+  filename = "bar1.png", # 保存的文件名称。通过后缀来决定生成什么格式的图片
+  width = 3.5,             # 宽
+  height = 3,            # 高
+  units = "in",          # 单位
+  dpi = 300              # 分辨率DPI
+) 
 ```
 
 ```{r}
 ##分组折线图
-p2 <- ggplot(data = df1, aes(x = reorder_size(angle), y = RT, group = condition, color = condition, shape = condition))+
+p2 <- ggplot(data = df1, aes(x = factor(angle, levels = c("0°或360°", "60°", "120°", "180°", "240°", "300°")), y = RT, group = condition, color = condition, shape = condition))+
       geom_point(size = 2, aes(color = condition))+
       geom_line(size = 0.5) +
 #修改y轴
-      scale_y_continuous(breaks = c(0, 200, 400, 600, 800, 1000, 1200), labels = c("0", "200", "400", "600", "800", "1000", "1200"), limits = c(0, 1200)) +
+      scale_y_continuous(breaks = c(0, 200, 400, 600, 800, 1000, 1200), labels = c("0", "200", "400", "600", "800", "1000", "1200"), limits = c(0, 1200), expand = c(0, 0)) +
 #增加标题
-      xlab("旋转角度") + ylab("平均反应时(ms)") +
+      xlab(" ") + ylab("平均反应时(ms)") +
+      labs(color = "条件", shape = "条件") +
 #增加error bar
       geom_errorbar(aes(ymin = RT - 40, ymax = RT + 40),
                     width = 0.05) +
 #修改图片背景 灰→白
       theme_bw() +
+#去除网格线
+      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
 #图例
-      theme(legend.position = 'top')
+      theme(legend.position = 'top') +
+#改变y轴字体大小
+      theme(axis.title.y=element_text(vjust=1.8, size=15), axis.title.x=element_text(vjust=2, size=15)) +
+      theme(axis.text.x=element_text(vjust=-2,size=15)) 
+
+p2
 
 #修改图题位置，并在图题下方增加一行空白
-gridExtra::grid.arrange(p2, bottom="图2 不同旋转角度字母的平均反应时
-                                                                    ") 
+#gridExtra::grid.arrange(p2, bottom="图2 不同旋转角度字母的平均反应时
+#                                                                    ") 
 
- 
+#保存图片
+ggsave(
+  filename = "line.png", # 保存的文件名称。通过后缀来决定生成什么格式的图片
+  width = 3.5,             # 宽
+  height = 3,            # 高
+  units = "in",          # 单位
+  dpi = 300              # 分辨率DPI
+) 
+
 ```
 ```{r}
 #使用melt 函数将宽数据gd1转换为长数据gd1_long1
@@ -107,24 +132,44 @@ df2_long <- melt(df2,
                  value.name='score')
 
 ##箱图
-p3 <- ggplot(df2_long, aes(x = variable, y = value, color = variable)) + 
-      geom_boxplot(outlier.colour = "red", outlier.size = 4) +
+p3 <- ggplot(df2_long, aes(x = factor(variable, levels = c("物理", "英语")), y = value, color = variable)) + 
+      geom_boxplot(outlier.color = "red", outlier.size = 3) +
       geom_jitter(shape=16, position = position_jitter(0.2)) +
-      stat_summary(fun.y = mean, geom = "point", shape = 23, size=4) +
+      stat_summary(fun = mean, geom = "point", shape = 23, size=4) +
 #增加标题
-      xlab("学科种类") + ylab("考试成绩")+
+      ylab("考试成绩") + xlab(" ") +
+#修改y轴并去除留余
+      scale_y_continuous(breaks = c(40, 60, 80, 100), labels = c("40", "60", "80", "100"), limits = c(40, 100), expand = c(0, 0)) +
 #修改图片背景 灰→白
       theme_bw() +
+#去除网格线
+      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
 #图例
       theme(legend.position = 'none') +
-      scale_color_discrete(name="scale change \n Legend",
-                          breaks=c("E" ,"P"),
-                          labels=c("英语", "物理")  )
+#改变坐标轴字体大小
+      theme(axis.title.y=element_text(vjust=2, size=18)) +
+      theme(axis.text.x=element_text(vjust=-2,size=18, face = "bold")) 
+
+p3
+
+ggsave(
+  filename = "box.png", # 保存的文件名称。通过后缀来决定生成什么格式的图片
+  width = 4,             # 宽
+  height = 2.5,            # 高
+  units = "in",          # 单位
+  dpi = 300              # 分辨率DPI
+)  
 
 #修改图题位置，并在图题下方增加一行空白
-gridExtra::grid.arrange(p3, bottom="图3 英语、物理成绩的箱图
-                                                            ") 
+#gridExtra::grid.arrange(p3, bottom="图3 英语、物理成绩的箱图
+#                                                            ") 
 
+```
+
+
+
+
+```{r}
 ##条形图
 #没走通的小聪明 离散型和连续型有区别
 df3 <- data.frame(
@@ -135,52 +180,105 @@ df3 <- data.frame(
       )
 
 p4 <- ggplot(data = df3, aes(x = 学科种类, y = 考试成绩, fill = 性别)) +
-      geom_bar(stat = "identity", position = position_dodge2(), width = 0.7, size = 0.25) +
-#增加数据具体数值
-      geom_text(aes(label = 考试成绩), size = 10/.pt,
-            position = position_dodge2(width = 0.7, preserve = 'single'),  vjust = -4.5) +
-      scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100), labels = c("0", "20", "40", "60", "80", "100"), limits = c(0, 100)) +
+      geom_bar(stat = "identity", position = position_dodge(), width = 0.7, size = 1) +
+      scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100), labels = c("0", "20", "40", "60", "80", "100"), limits = c(0, 100), expand = c(0, 0)) +
+      xlab(" ") +
 #增加error bar
       geom_errorbar(aes(ymin = 考试成绩 - sd, ymax = 考试成绩 + sd),
                     position = position_dodge(0.7),width=0.15) +
 #修改图片背景 灰→白
       theme_bw() +
+#去除网格线
+      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
 #图例
-      theme(legend.position = 'top')
+      theme(legend.position = 'top') +
+#改变y轴字体大小
+      theme(axis.title.y=element_text(vjust=2, size=18), axis.title.x=element_text(vjust=2, size=15)) +
+      theme(axis.text.x=element_text(vjust=-2,size=18, face = "bold"))
 
+p4
+
+ggsave(
+  filename = "bar2.png", # 保存的文件名称。通过后缀来决定生成什么格式的图片
+  width = 4,             # 宽
+  height = 2.5,            # 高
+  units = "in",          # 单位
+  dpi = 300              # 分辨率DPI
+) 
 #修改图题位置，并在图题下方增加一行空白
-gridExtra::grid.arrange(p4, bottom="图4 男生、女生英语、物理成绩的条形图
-                                                                         ") 
+#gridExtra::grid.arrange(p4, bottom="图4 男生、女生英语、物理成绩的条形图
+#                                                                         ") 
 ```
+
+
 ```{r}
 p5 <- ggplot(data = df3, aes(x = 学科种类, y = 考试成绩, fill = 性别)) +
-      scale_y_continuous(breaks = c(60, 80, 100), labels = c("60", "80", "100"), limits = c(60, 100)) +
+      scale_y_continuous(breaks = c(40, 60, 80, 100, 120), labels = c("40", "60", "80", "100", "120"), limits = c(40, 120), expand = c(0, 0)) +
 #增加error bar
-      geom_errorbar(aes(ymin = 考试成绩 - sd, ymax = 考试成绩 + sd),
-                    position = position_dodge(0.7),width=0.3) +
-      stat_summary(fun.y = mean, geom = "point", shape = 23, size=4, position = position_dodge(0.7)) +
+      geom_errorbar(aes(ymin = 考试成绩 - 2*sd, ymax = 考试成绩 + 2*sd),
+                    position = position_dodge(0.7),width = 0.3) +
+      stat_summary(fun = mean, geom = "point", shape = 23, size = 4, position = position_dodge(0.7)) +
+#增加标题
+      ylab("考试成绩") + xlab(" ") +
 #修改图片背景 灰→白
       theme_bw() +
+#去除网格线
+      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
 #图例
-      theme(legend.position = 'top')
+      theme(legend.position = 'top') +
+#改变y轴字体大小
+      theme(axis.title.y=element_text(vjust=2, size=18), axis.title.x=element_text(vjust=2, size=15)) +
+      theme(axis.text.x=element_text(vjust=-2,size=18, face = "bold"))
+
+p5
+
+ggsave(
+  filename = "error bar.png", # 保存的文件名称。通过后缀来决定生成什么格式的图片
+  width = 4,             # 宽
+  height = 2.5,            # 高
+  units = "in",          # 单位
+  dpi = 300              # 分辨率DPI
+) 
 
 #修改图题位置，并在图题下方增加一行空白
-gridExtra::grid.arrange(p5, bottom="图5 男生、女生英语、物理成绩的误差条形图
-                                                                            ") 
+#gridExtra::grid.arrange(p5, bottom="图5 男生、女生英语、物理成绩的误差条形图
+#                                                                            ")
 ```
+
+
+
+
 ```{r}
 ##散点图
+#建立线性模型可以获得回归方程
+lm(英语 ~ 物理, data = df2)
+
 p6 <- ggplot(data = df2, aes(x = 英语, y = 物理))+
       geom_point(colour = "dark red")+
-      geom_smooth(method = lm) +
-      scale_y_continuous(breaks = c(60, 80, 100), labels = c("60", "80", "100"), limits = c(60, 100)) +
-      scale_x_continuous(breaks = c(60, 80, 100), labels = c("60", "80", "100"), limits = c(60, 100)) +
+      geom_smooth() +
+      scale_y_continuous(breaks = c(40, 60, 80, 100), labels = c("40", "60", "80", "100"), limits = c(40, 100), expand = c(0, 0)) +
+      scale_x_continuous(breaks = c(40, 60, 80, 100), labels = c("40", "60", "80", "100"), limits = c(40, 100), expand = c(0, 0)) +
 #修改图片背景 灰→白
-      theme_bw() 
+      theme_bw() +
+#去除网格线
+      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
+#改变y轴字体大小
+      theme(axis.title.y=element_text(vjust=2, size=15), axis.title.x=element_text(vjust=2, size=15)) 
+
+p6
+
+ggsave(
+  filename = "dot.png", # 保存的文件名称。通过后缀来决定生成什么格式的图片
+  width = 2.5,             # 宽
+  height = 2.5,            # 高
+  units = "in",          # 单位
+  dpi = 300              # 分辨率DPI
+) 
+
 
 #修改图题位置，并在图题下方增加一行空白
-gridExtra::grid.arrange(p6, bottom="图6 英语、物理成绩的散点图
-                                                              ")
+#gridExtra::grid.arrange(p6, bottom="图6 英语、物理成绩的散点图
+#                                                              ")
 ```
 
 ```{r}
@@ -189,16 +287,61 @@ gridExtra::grid.arrange(p6, bottom="图6 英语、物理成绩的散点图
 #                    levels = c('1','2','3','4','5'),
 #                    labels = c("<5%","5%-20%","20%-80%","80%-95%",">95%"))
 
-p7 <- ggplot(data = df4, mapping = aes(x = ' ', y = group, fill = group)) +  
-      geom_bar(stat = 'identity', position = 'stack', width = 1) +
-      coord_polar(theta = 'y') +
+label <- paste(round(table(df4$group)/30*100, digits = 2), '%')
+label
+
+
+colors<-brewer.pal(name="Set2", 5)
+
+#待解决问题：添加百分比
+p7 <- ggplot(data = df4, mapping = aes(x = ' ', fill = factor(group))) +  
+      geom_bar(stat = 'count', position = 'fill', width = 1) +
+#转换坐标系
       coord_polar(theta = 'y') + labs(x = '', y = '', title = '') + theme(axis.text = element_blank()) + theme(axis.ticks = element_blank()) +
 #修改图片背景 灰→白
-      theme_bw() 
+      theme_bw() +
+      scale_fill_manual(name="组别", labels = c(">95%", "80%-95%", "20%-80%", "5%-20%", "<5%"), values = colors) +
+      theme(axis.text = element_blank()) + theme(axis.ticks = element_blank()) + theme(panel.grid=element_blank())
 
+p7
+
+ggsave(
+  filename = "pie.png", # 保存的文件名称。通过后缀来决定生成什么格式的图片
+  width = 2.5,             # 宽
+  height = 2,            # 高
+  units = "in",          # 单位
+  dpi = 300              # 分辨率DPI
+) 
 
 #修改图题位置，并在图题下方增加一行空白
-gridExtra::grid.arrange(p7, bottom="图7 不同组被试数的饼图
-                                                          ")                                                   
+#gridExtra::grid.arrange(p7, bottom="图7 不同组被试数的饼图
+#                                                          ")                                                   
+```
+
+```{r}
+##条形图-频次
+p8 <- ggplot(data = df4, mapping = aes(factor(group), fill = group)) +  
+      geom_bar(stat = "count", position = position_dodge(), width = 0.5) +
+      labs(x = '', y = '被试数量') +
+      scale_y_continuous(breaks = c(0, 5, 10, 15, 20), labels = c("0", "5", "10", "15", "20"), limits = c(0, 20), expand = c(0, 0)) +
+      scale_x_discrete(labels = c(">95%", "80%-95%", "20%-80%", "5%-20%", "<5%"), expand = c(0, 0)) +
+#修改图片背景 灰→白
+      theme_bw() +
+      theme(legend.position = 'none') +
+#去除网格线
+      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
+#改变y轴字体大小
+      theme(axis.title.y=element_text(vjust=2, size=18), axis.title.x=element_text(vjust=2, size=15)) +
+      theme(axis.text.x=element_text(vjust=-2,size=18, face = "bold"))
+
+p8
+
+ggsave(
+  filename = "count bar.png", # 保存的文件名称。通过后缀来决定生成什么格式的图片
+  width = 2.5,             # 宽
+  height = 2,            # 高
+  units = "in",          # 单位
+  dpi = 300              # 分辨率DPI
+) 
 ```
 
